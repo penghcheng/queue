@@ -1,0 +1,63 @@
+一、SFTP简述
+sftp（Secure File Transfer Protocol）是一种安全的文件传送协议，是ssh内含协议，也就是说只要sshd服务器启动了，sftp就可使用，不需要额外安装，它的默认端口和SSH一样为22。
+sftp通过使用加密/解密技术来保障传输文件的安全性，因此sftp的传输效率比普通的FTP要低，但sftp的安全性要比ftp高，因此sftp通常用于报表、对账单等对安全性要求较高的场景。
+
+二、SFTP服务配置（基于Centos 7）
+在CentOS 7系统中按照如下步骤配置sftp服务
+1、使用root用户查看openssh的版本：版本需大于4.8p1
+
+ssh -V // 如果版本过低，需要先升级
+
+2、使用root用户创建用户组，组名为sftpgroup；创建sftp用户，用户名为sftpuser，并设置密码
+
+groupadd sftpgroup // 创建sftp组
+
+##重点 添加用户的时候把说在用户的组改为root，就可以在phpstorm上的Deployment的root path可以指定任何的路径
+
+useradd -g sftpgroup -M -s /sbin/nologin sftpuser //-M 表示创建用户时不生成对应home目录，-s /sbin/nologin 表示sftp用户不能登录系统
+
+passwd sftpuser // 修改sftp用户密码
+
+3、修改配置文件sshd_config
+
+vi /etc/ssh/sshd_config
+
+修改如下：
+
+将下面这行注释掉
+#Subsystem sftp /usr/libexec/openssh/sftp-server
+## 在文件末尾添加如下几行
+Subsystem sftp internal-sftp
+Match Group sftpgroup
+X11Forwarding no
+AllowTcpForwarding no
+ChrootDirectory %h
+ForceCommand internal-sftp
+
+4、使用root用户新建目录/home/sftpfile，将其设置为sftpuser的home目录，并指定目录权限
+
+mkdir -p /sftp/sftpuser //-p 表示parents，即递归创建目录
+usermod -d /sftp/sftpuser sftpuser // -d 表示修改用户home目录
+
+// 设置Chroot目录权限
+chown root:sftpgroup /sftp/sftpuser
+chmod 755 /sftp/sftpuser
+
+// 设置sftp用户可以操作的目录
+mkdir /sftp/sftpuser/upload
+chown sftpuser:sftpgroup /sftp/sftpuser/upload
+chmod 755 /sftp/sftpuser/upload
+
+5、重启SSH
+
+systemctl restart sshd.service
+
+6、验证：切换到sftpuser用户进行验证
+
+sftp sftpuser@127.0.0.1
+
+参考如下万分感谢!
+
+作者：rm杠rf
+链接：https://www.jianshu.com/p/a9fc3793a9fa
+來源：简书
