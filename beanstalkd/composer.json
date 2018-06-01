@@ -1,0 +1,16 @@
+{
+    "name": "derek/beanstalkd",
+    "description": "php-beanstalkd demo",
+    "type": "library",
+    "require": {
+        "php": "^7.0",
+        "pda/pheanstalk": "^3.1@dev"
+    },
+    "authors": [
+        {
+            "name": "derek",
+            "email": "22865900737@qq.com"
+        }
+    ],
+    "minimum-stability": "dev"
+}
